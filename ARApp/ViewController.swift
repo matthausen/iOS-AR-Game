@@ -165,10 +165,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
             var node = SCNNode()
             
             if (index > 9) && (index % 10 == 0) {
-                let scene = SCNScene(named: "art.scnassets/slenderman.dae")
-                node = (scene?.rootNode.childNode(withName: "Slenderman", recursively: true)!)!
-                node.scale = SCNVector3(0.3,0.3,0.3)
-                node.name = "slenderman"
+                let scene = SCNScene(named: "art.scnassets/chicken.dae")
+                node = (scene?.rootNode.childNode(withName: "Chicken", recursively: true)!)!
+                node.scale = SCNVector3(1,1,1)
+                node.name = "Chicken"
             }
             else{
                 let scene = SCNScene(named: "art.scnassets/alien.dae")
@@ -231,7 +231,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         if contact.nodeA.physicsBody?.categoryBitMask == CollisionCategory.targetCategory.rawValue
             || contact.nodeB.physicsBody?.categoryBitMask == CollisionCategory.targetCategory.rawValue {
             
-            if (contact.nodeA.name! == "SlenderMan" || contact.nodeB.name! == "SlenderMan") {
+            if (contact.nodeA.name! == "Chicken" || contact.nodeB.name! == "Chicken") {
                 score+=5
             }else{
                 score+=1

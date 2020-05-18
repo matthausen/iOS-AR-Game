@@ -13,9 +13,9 @@
 		4E0EA1DA247062D200B997C2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4E0EA1D8247062D200B997C2 /* Main.storyboard */; };
 		4E0EA1DC247062D400B997C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E0EA1DB247062D400B997C2 /* Assets.xcassets */; };
 		4E0EA1DF247062D400B997C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4E0EA1DD247062D400B997C2 /* LaunchScreen.storyboard */; };
-		4EB580832473307100E16F4E /* explosion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4EB580822473307100E16F4E /* explosion.mp3 */; };
-		4EB58086247333A700E16F4E /* spark.png in Resources */ = {isa = PBXBuildFile; fileRef = 4EB58085247333A700E16F4E /* spark.png */; };
-		4EB58088247333AB00E16F4E /* Explode.scnp in Resources */ = {isa = PBXBuildFile; fileRef = 4EB58087247333AB00E16F4E /* Explode.scnp */; };
+		4EB5808A2473430F00E16F4E /* spark.png in Resources */ = {isa = PBXBuildFile; fileRef = 4EB580892473430F00E16F4E /* spark.png */; };
+		4EB5808C2473434100E16F4E /* Explode.scnp in Resources */ = {isa = PBXBuildFile; fileRef = 4EB5808B2473434100E16F4E /* Explode.scnp */; };
+		4EB5808E2473435000E16F4E /* explosion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4EB5808D2473435000E16F4E /* explosion.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,9 +27,9 @@
 		4E0EA1DB247062D400B997C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4E0EA1DE247062D400B997C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4E0EA1E0247062D400B997C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		4EB580822473307100E16F4E /* explosion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = explosion.mp3; path = ../../../../Downloads/explosion.mp3; sourceTree = "<group>"; };
-		4EB58085247333A700E16F4E /* spark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = spark.png; path = ../../../../Downloads/spark.png; sourceTree = "<group>"; };
-		4EB58087247333AB00E16F4E /* Explode.scnp */ = {isa = PBXFileReference; lastKnownFileType = file.scp; name = Explode.scnp; path = ../../../../Downloads/Explode.scnp; sourceTree = "<group>"; };
+		4EB580892473430F00E16F4E /* spark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = spark.png; path = ../../../../Downloads/3dmodels/spark.png; sourceTree = "<group>"; };
+		4EB5808B2473434100E16F4E /* Explode.scnp */ = {isa = PBXFileReference; lastKnownFileType = file.scp; name = Explode.scnp; path = ../../../../Downloads/3dmodels/Explode.scnp; sourceTree = "<group>"; };
+		4EB5808D2473435000E16F4E /* explosion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = explosion.mp3; path = ../../../../Downloads/3dmodels/explosion.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,7 +78,7 @@
 		4EB5808124732F2C00E16F4E /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
-				4EB580822473307100E16F4E /* explosion.mp3 */,
+				4EB5808D2473435000E16F4E /* explosion.mp3 */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -86,8 +86,8 @@
 		4EB580842473339E00E16F4E /* Particles */ = {
 			isa = PBXGroup;
 			children = (
-				4EB58087247333AB00E16F4E /* Explode.scnp */,
-				4EB58085247333A700E16F4E /* spark.png */,
+				4EB5808B2473434100E16F4E /* Explode.scnp */,
+				4EB580892473430F00E16F4E /* spark.png */,
 			);
 			path = Particles;
 			sourceTree = "<group>";
@@ -151,12 +151,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				4E0EA1D5247062D200B997C2 /* art.scnassets in Resources */,
-				4EB58086247333A700E16F4E /* spark.png in Resources */,
 				4E0EA1DF247062D400B997C2 /* LaunchScreen.storyboard in Resources */,
 				4E0EA1DC247062D400B997C2 /* Assets.xcassets in Resources */,
 				4E0EA1DA247062D200B997C2 /* Main.storyboard in Resources */,
-				4EB58088247333AB00E16F4E /* Explode.scnp in Resources */,
-				4EB580832473307100E16F4E /* explosion.mp3 in Resources */,
+				4EB5808E2473435000E16F4E /* explosion.mp3 in Resources */,
+				4EB5808A2473430F00E16F4E /* spark.png in Resources */,
+				4EB5808C2473434100E16F4E /* Explode.scnp in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
