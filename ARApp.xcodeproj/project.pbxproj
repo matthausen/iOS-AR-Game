@@ -13,6 +13,7 @@
 		4E0EA1DA247062D200B997C2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4E0EA1D8247062D200B997C2 /* Main.storyboard */; };
 		4E0EA1DC247062D400B997C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4E0EA1DB247062D400B997C2 /* Assets.xcassets */; };
 		4E0EA1DF247062D400B997C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4E0EA1DD247062D400B997C2 /* LaunchScreen.storyboard */; };
+		4E81DB722475B017007D75F5 /* MultipeerSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E81DB712475B017007D75F5 /* MultipeerSession.swift */; };
 		4EB5808A2473430F00E16F4E /* spark.png in Resources */ = {isa = PBXBuildFile; fileRef = 4EB580892473430F00E16F4E /* spark.png */; };
 		4EB5808C2473434100E16F4E /* Explode.scnp in Resources */ = {isa = PBXBuildFile; fileRef = 4EB5808B2473434100E16F4E /* Explode.scnp */; };
 		4EB5808E2473435000E16F4E /* explosion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4EB5808D2473435000E16F4E /* explosion.mp3 */; };
@@ -27,6 +28,7 @@
 		4E0EA1DB247062D400B997C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4E0EA1DE247062D400B997C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4E0EA1E0247062D400B997C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4E81DB712475B017007D75F5 /* MultipeerSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerSession.swift; sourceTree = "<group>"; };
 		4EB580892473430F00E16F4E /* spark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = spark.png; path = ../../../../Downloads/3dmodels/spark.png; sourceTree = "<group>"; };
 		4EB5808B2473434100E16F4E /* Explode.scnp */ = {isa = PBXFileReference; lastKnownFileType = file.scp; name = Explode.scnp; path = ../../../../Downloads/3dmodels/Explode.scnp; sourceTree = "<group>"; };
 		4EB5808D2473435000E16F4E /* explosion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = explosion.mp3; path = ../../../../Downloads/3dmodels/explosion.mp3; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 				4E0EA1D2247062D200B997C2 /* AppDelegate.swift */,
 				4E0EA1D4247062D200B997C2 /* art.scnassets */,
 				4E0EA1D6247062D200B997C2 /* ViewController.swift */,
+				4E81DB712475B017007D75F5 /* MultipeerSession.swift */,
 				4E0EA1D8247062D200B997C2 /* Main.storyboard */,
 				4E0EA1DB247062D400B997C2 /* Assets.xcassets */,
 				4E0EA1DD247062D400B997C2 /* LaunchScreen.storyboard */,
@@ -167,6 +170,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E81DB722475B017007D75F5 /* MultipeerSession.swift in Sources */,
 				4E0EA1D7247062D200B997C2 /* ViewController.swift in Sources */,
 				4E0EA1D3247062D200B997C2 /* AppDelegate.swift in Sources */,
 			);

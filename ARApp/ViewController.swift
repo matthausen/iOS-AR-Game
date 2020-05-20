@@ -7,8 +7,10 @@
 //
 
 import UIKit
-import SceneKit
 import ARKit
+import RealityKit
+//import SceneKit
+import MultipeerConnectivity
 
 struct CollisionCategory: OptionSet {
    let rawValue: Int
@@ -16,36 +18,26 @@ struct CollisionCategory: OptionSet {
    static let targetCategory = CollisionCategory(rawValue: 1 << 1)
 }
 
-class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDelegate {
+class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, SCNPhysicsContactDelegate {
     
-    // MARK: - The Ar View
+    // MARK: - Global variables
     @IBOutlet var sceneView: ARSCNView!
     
-    // MARK: - buttons
     @IBAction func onBanana(_ sender: Any) {
         fireMissile(type: "banana")
     }
     
-    // MARK: - Labels
     @IBOutlet weak var scoreLabel: UILabel!
     @IBOutlet weak var timerLabel: UILabel!
+    @IBOutlet weak var sendMapButton: UIButton!
+    @IBOutlet weak var sessionInfoLabel: UILabel!
+    @IBOutlet weak var mappingStatusLabel: UILabel!
+    
+    var multipeerSession: MultipeerSession!
     
     // MARK: - Score and Music:
     var score = 0
     var player: AVAudioPlayer?
-    
-    //MARK: - fire objects on button press
-    
-    func getUserVector() -> (SCNVector3, SCNVector3) { // (direction, position)
-        if let frame = self.sceneView.session.currentFrame {
-            let mat = SCNMatrix4(frame.camera.transform) // 4x4 transform matrix describing camera in world space
-            let dir = SCNVector3(-1 * mat.m31, -1 * mat.m32, -1 * mat.m33) // orientation of camera in world space
-            let pos = SCNVector3(mat.m41, mat.m42, mat.m43) // location of camera in world space
-            
-            return (dir, pos)
-        }
-        return (SCNVector3(0, 0, -1), SCNVector3(0, 0, -0.2))
-    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,12 +45,16 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         // Set the view's delegate
         sceneView.delegate = self
         
+        
         // Show statistics such as fps and timing information
         // sceneView.showsStatistics = true
         
         // Add a tapGestureRecognizer to interact with the scene
         //let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap(_:)))
         //sceneView.addGestureRecognizer(tapGesture)
+        
+        // Initiate mulipeerSession
+        multipeerSession = MultipeerSession(receivedDataHandler: receivedData)
         
         sceneView.scene.physicsWorld.contactDelegate = self
         addTargetNodes()
@@ -74,6 +70,27 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         sceneView.session.run(configuration)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        guard ARWorldTrackingConfiguration.isSupported else {
+            fatalError("""
+                ARKit is not available on this device. For apps that require ARKit
+                for core functionality, use the `arkit` key in the key in the
+                `UIRequiredDeviceCapabilities` section of the Info.plist to prevent
+                the app from installing. (If the app can't be installed, this error
+                can't be triggered in a production scenario.)
+                In apps where AR is an additive feature, use `isSupported` to
+                determine whether to show UI for launching AR experiences.
+            """)
+        }
+        
+        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+        // Prevent the screen from being dimmed after a while as users will likely
+        // have long periods of interaction without touching the screen or buttons.
+        UIApplication.shared.isIdleTimerDisabled = true
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
@@ -81,25 +98,168 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         sceneView.session.pause()
     }
     
-//    @objc
-//    func didTap(_ gesture: UITapGestureRecognizer) {
-//        let sceneViewTappedOn = gesture.view as! ARSCNView
-//        let touchCoordinates = gesture.location(in: sceneViewTappedOn)
-//        let hitTest = sceneViewTappedOn.hitTest(touchCoordinates, types: .existingPlaneUsingExtent)
-//
-//        guard !hitTest.isEmpty, let hitTestResult = hitTest.first else {
-//            return
-//        }
-//
-//        let position = SCNVector3(hitTestResult.worldTransform.columns.3.x,
-//                                  hitTestResult.worldTransform.columns.3.y,
-//                                  hitTestResult.worldTransform.columns.3.z)
-//
-//        addItemToPosition(position)
-//    }
+    // MARK: - Multi User Session
+    func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
+        // updateSessionInfoLabel(for: session.currentFrame!, trackingState: camera.trackingState)
+    }
     
-    // MARK : - creating object
+    /// - Tag: CheckMappingStatus
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        print("Running")
+        switch frame.worldMappingStatus {
+        case .notAvailable, .limited:
+            sendMapButton.isEnabled = false
+        case .extending:
+            sendMapButton.isEnabled = !multipeerSession.connectedPeers.isEmpty
+        case .mapped:
+            sendMapButton.isEnabled = !multipeerSession.connectedPeers.isEmpty
+        @unknown default:
+            sendMapButton.isEnabled = false
+        }
+        mappingStatusLabel.text = "frame.worldMappingStatus.description"
+        updateSessionInfoLabel(for: frame, trackingState: frame.camera.trackingState)
+    }
     
+    // MARK: - Session Observers
+    func sessionWasInterrupted(_ session: ARSession) {
+        // Inform the user that the session has been interrupted, for example, by presenting an overlay.
+        sessionInfoLabel.text = "Session was interrupted"
+    }
+    
+    func sessionInterruptionEnded(_ session: ARSession) {
+        // Reset tracking and/or remove existing anchors if consistent tracking is required.
+        sessionInfoLabel.text = "Session interruption ended"
+    }
+    
+    func session(_ session: ARSession, didFailWithError error: Error) {
+        sessionInfoLabel.text = "Session failed: \(error.localizedDescription)"
+        guard error is ARError else { return }
+
+        let errorWithInfo = error as NSError
+        let messages = [
+            errorWithInfo.localizedDescription,
+            errorWithInfo.localizedFailureReason,
+            errorWithInfo.localizedRecoverySuggestion
+        ]
+
+        // Remove optional error messages.
+        let errorMessage = messages.compactMap({ $0 }).joined(separator: "\n")
+
+        DispatchQueue.main.async {
+            // Present an alert informing about the error that has occurred.
+            let alertController = UIAlertController(title: "The AR session failed.", message: errorMessage, preferredStyle: .alert)
+            let restartAction = UIAlertAction(title: "Restart Session", style: .default) { _ in
+                alertController.dismiss(animated: true, completion: nil)
+                self.resetTracking(nil)
+            }
+            alertController.addAction(restartAction)
+            self.present(alertController, animated: true, completion: nil)
+        }
+    }
+    
+    /// - Tag: GetWorldMap
+    @IBAction func shareSession(_ button: UIButton) {
+        sceneView.session.getCurrentWorldMap { worldMap, error in
+            guard let map = worldMap
+                else { print("Error: \(error!.localizedDescription)"); return }
+            guard let data = try? NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
+                else { fatalError("can't encode map") }
+            self.multipeerSession.sendToAllPeers(data)
+        }
+    }
+    
+    /// - Tag: ReceiveData
+    var mapProvider: MCPeerID?
+    func receivedData(_ data: Data, from peer: MCPeerID) {
+        
+        do {
+            if let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: data) {
+                // Run the session with the received world map.
+                let configuration = ARWorldTrackingConfiguration()
+                configuration.planeDetection = .horizontal
+                configuration.initialWorldMap = worldMap
+                sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+                
+                // Remember who provided the map for showing UI feedback.
+                mapProvider = peer
+            }
+            else
+            if let anchor = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARAnchor.self, from: data) {
+                // Add anchor to the session, ARSCNView delegate adds visible content.
+                sceneView.session.add(anchor: anchor)
+            }
+            else {
+                print("unknown data recieved from \(peer)")
+            }
+        } catch {
+            print("can't decode data recieved from \(peer)")
+        }
+    }
+    
+    private func updateSessionInfoLabel(for frame: ARFrame, trackingState: ARCamera.TrackingState) {
+        // Update the UI to provide feedback on the state of the AR experience.
+        let message: String
+        
+        switch trackingState {
+        case .normal where frame.anchors.isEmpty && multipeerSession.connectedPeers.isEmpty:
+            // No planes detected; provide instructions for this app's AR interactions.
+            message = "Move around to map the environment, or wait to join a shared session."
+            
+        case .normal where !multipeerSession.connectedPeers.isEmpty && mapProvider == nil:
+            let peerNames = multipeerSession.connectedPeers.map({ $0.displayName }).joined(separator: ", ")
+            message = "Connected with \(peerNames)."
+            
+        case .notAvailable:
+            message = "Tracking unavailable."
+            
+        case .limited(.excessiveMotion):
+            message = "Tracking limited - Move the device more slowly."
+            
+        case .limited(.insufficientFeatures):
+            message = "Tracking limited - Point the device at an area with visible surface detail, or improve lighting conditions."
+            
+        case .limited(.initializing) where mapProvider != nil,
+             .limited(.relocalizing) where mapProvider != nil:
+            message = "Received map from \(mapProvider!.displayName)."
+            
+        case .limited(.relocalizing):
+            message = "Resuming session — move to where you were when the session was interrupted."
+            
+        case .limited(.initializing):
+            message = "Initializing AR session."
+            
+        default:
+            // No feedback needed when tracking is normal and planes are visible.
+            // (Nor when in unreachable limited-tracking states.)
+            message = ""
+            
+        }
+        
+        sessionInfoLabel.text = message
+        // sessionInfoView.isHidden = message.isEmpty
+    }
+    
+    @IBAction func resetTracking(_ sender: UIButton?) {
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.planeDetection = .horizontal
+        sceneView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+    }
+    
+    
+    
+    //MARK: - Fire Objects func
+    func getUserVector() -> (SCNVector3, SCNVector3) { // (direction, position)
+        if let frame = self.sceneView.session.currentFrame {
+            let mat = SCNMatrix4(frame.camera.transform) // 4x4 transform matrix describing camera in world space
+            let dir = SCNVector3(-1 * mat.m31, -1 * mat.m32, -1 * mat.m33) // orientation of camera in world space
+            let pos = SCNVector3(mat.m41, mat.m42, mat.m43) // location of camera in world space
+            
+            return (dir, pos)
+        }
+        return (SCNVector3(0, 0, -1), SCNVector3(0, 0, -0.2))
+    }
+    
+    // MARK: - Create object func
     func createMissile(type : String)->SCNNode{
         var node = SCNNode()
         
@@ -129,8 +289,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         return node
     }
     
-    // MARK: - fire object
-    
+    // MARK: - Fire object func
     func fireMissile(type : String){
         var node = SCNNode()
         //create node
@@ -158,7 +317,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         sceneView.scene.rootNode.addChildNode(node)
     }
     
-    // MARK: - Add 100 objects at random position around you
+    // MARK: - Create nodes func
     func addTargetNodes(){
         for index in 1...100 {
             
@@ -206,7 +365,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         // Release any cached data, images, etc that aren't in use.
     }
     
-    // MARK: - Play Music
+    // MARK: - Play Music fucn
     func playSound(sound: String, format: String) {
         guard let url = Bundle.main.url(forResource: sound, withExtension: format)else {return}
         do {
@@ -222,8 +381,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         }
     }
     
-    // MARK: - Contact Delegate - This function runs when a collision is detected
-    
+    // MARK: - Collision detection func
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
         
          print("** Collision!! " + contact.nodeA.name! + " hit " + contact.nodeB.name!)
@@ -247,36 +405,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
             let explosion = SCNParticleSystem(named: "Explode", inDirectory: nil)
             contact.nodeB.addParticleSystem(explosion!)
         }
-    }
-    
-    
-    // MARK: - OLD CODE
-    
-    // Add the 3D model at that position
-//    func addItemToPosition(_ position: SCNVector3) {
-//        let scene = SCNScene(named: "art.scnassets/ship.scn")
-//
-//        DispatchQueue.main.async {
-//            if let node = scene?.rootNode.childNode(withName: "ship", recursively: false) {
-//                node.position = position
-//                self.sceneView.scene.rootNode.addChildNode(node)
-//            }
-//        }
-//    }
-    
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
-        
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
     }
 }
 
